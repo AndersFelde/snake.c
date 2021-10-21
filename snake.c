@@ -118,6 +118,14 @@ int snakeMove(Snake *snake)
     snake->firstLast = firstLast;
     // printf("1:%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
 
+    // snake->lastLast = snake->lastLast->next;
+    // printf("2:%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
+
+    snake->head.y += snake->direction.y;
+    snake->head.x += snake->direction.x;
+
+    board[snake->head.y][snake->head.x] = 'X';
+
     if (!eatApple)
     {
         board[snake->lastLast->cord.y][snake->lastLast->cord.x] =
@@ -131,14 +139,7 @@ int snakeMove(Snake *snake)
     {
         generateApple();
     }
-
-    // snake->lastLast = snake->lastLast->next;
-    // printf("2:%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
-
-    snake->head.y += snake->direction.y;
-    snake->head.x += snake->direction.x;
-
-    board[snake->head.y][snake->head.x] = 'X'; // flytter hodet
+    // flytter hodet
 
     /* printf("%p\n", snake->lastLast->next);
     printf("%p\n", snake->firstLast); */
