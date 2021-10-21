@@ -3,11 +3,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define yLength 20
-#define xLength 30
-
-char board[yLength][xLength];
-
 typedef struct Coordinate
 {
     int x;
@@ -29,6 +24,12 @@ typedef struct Snake
     Coordinate nextLast;
     int length;
 } Snake;
+
+#define yLength 20
+#define xLength 30
+
+char board[yLength][xLength];
+Coordinate apple;
 
 int kbhit()
 {
@@ -67,11 +68,25 @@ void createBoard()
     }
 }
 
+void generateApple()
+{
+    //rand() % (max_number + 1 - minimum_number) + minimum_number
+    apple.x = rand() % (xLength - 1) + 1;
+    apple.y = rand() % (yLength - 1) + 1;
+    board[apple.y][apple.y] = '*';
+}
+
 int snakeMove(Snake *snake)
 {
-    if (board[snake->head.y + snake->direction.y][snake->head.x + snake->direction.x] == '!')
+    int eatApple = 0;
+    char nextTile = board[snake->head.y + snake->direction.y][snake->head.x + snake->direction.x];
+    if (nextTile == '!' || nextTile == 'X')
     {
         return 0;
+    }
+    else if (nextTile == '*')
+    {
+        eatApple = 1;
     }
     // BUG: WHAT?????? printf("moving\n");
 
@@ -94,12 +109,20 @@ int snakeMove(Snake *snake)
     snake->firstLast = firstLast;
     // printf("1:%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
 
-    board[snake->lastLast->cord.y][snake->lastLast->cord.x] =
-        ' '; // fjerner siste enden
-    // printf("1:%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
-    Last *nextLastLast = snake->lastLast->next;
-    free(snake->lastLast);
-    snake->lastLast = nextLastLast;
+    if (!eatApple)
+    {
+        board[snake->lastLast->cord.y][snake->lastLast->cord.x] =
+            ' '; // fjerner siste enden
+        // printf("1:%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
+        Last *nextLastLast = snake->lastLast->next;
+        free(snake->lastLast);
+        snake->lastLast = nextLastLast;
+    }
+    else
+    {
+        generateApple();
+    }
+
     // snake->lastLast = snake->lastLast->next;
     // printf("2:%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
 
@@ -224,7 +247,7 @@ int main()
 
     createBoard();
     initCurses();
-
+    generateApple();
     // ncurses
 
     while (1)
