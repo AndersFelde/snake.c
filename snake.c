@@ -53,8 +53,15 @@ void createBoard() {
 }
 
 int snakeMove(Snake *snake) {
-    printf("Tried to move");
-    snake->lastLast = snake->lastLast->next;
+    printf("moving\n");
+    Snake joe = *snake;
+
+    /* printf("%p\n", snake->lastLast->next);
+    printf("%p\n", snake->firstLast); */
+    printf("%p\n", joe.lastLast->next);
+    printf("%p\n", joe.firstLast);
+
+    /* snake->lastLast = snake->lastLast->next;
 
     Last firstLast;
     firstLast.cord.x = snake->head.x;
@@ -72,7 +79,7 @@ int snakeMove(Snake *snake) {
 
     if (board[snake->head.y][snake->head.x] == '!') {
         return 0;
-    }
+    } */
     return 1;
 }
 
@@ -88,7 +95,7 @@ void updateBoard(Snake *snake) {
         }
         printw("\n");
     }
-    usleep(1000000);
+    // usleep(1000000);
 }
 
 Snake initSnake() {
@@ -108,12 +115,15 @@ Snake initSnake() {
     lastLast.cord.x = snake.head.x - 2;
     lastLast.cord.y = snake.head.y;
     lastLast.next = &firstLast;
+    printf("%p\n", lastLast.next);
 
     firstLast.cord.x = snake.head.x - 1;
     firstLast.cord.y = snake.head.y;
 
     snake.lastLast = &lastLast;
+    printf("%p\n", snake.lastLast->next);
     snake.firstLast = &firstLast;
+    printf("%p\n", snake.firstLast);
 
     board[snake.head.y][snake.head.x] = 'X';  // flytter hodet
     board[snake.firstLast->cord.y][snake.firstLast->cord.x] = 'X';
@@ -123,6 +133,10 @@ Snake initSnake() {
 }
 
 void checkKey(Snake *snake) {
+    /* Key pressed! It was: 119 W
+    Key pressed! It was: 97 A
+    Key pressed! It was: 115 S
+    Key pressed! It was: 100 D*/
     switch (getch()) {
         // alt må være invers
         case 119:
@@ -164,28 +178,32 @@ void initCurses() {
 
 int main() {
     printf("started");
-    // Snake snake = initSnake();
-    Snake snake;
+    Snake snake = initSnake();
 
-    createBoard();
+    /* printf("%p\n", snake.lastLast->next);
+    printf("%p\n", snake.firstLast); */
+    // createBoard();
+    /* printf("%p\n", snake.lastLast->next);
+    printf("%p\n", snake.firstLast); */
     // initCurses();
 
     // ncurses
 
-    while (1) {
-        if (kbhit()) {
-            /* Key pressed! It was: 119 W
-            Key pressed! It was: 97 A
-            Key pressed! It was: 115 S
-            Key pressed! It was: 100 D*/
-            checkKey(&snake);
-        }
+    // while (1) {
+    /* if (kbhit()) {
+        checkKey(&snake);
+    } */
 
-        refresh();
+    // refresh();
+    printf("\n%p\n", snake.lastLast->next);
+    printf("%p\n", snake.firstLast);
 
-        if (!snakeMove(&snake)) {
-            break;
-        }
-        updateBoard(&snake);
+    if (!snakeMove(&snake)) {
+        // break;
     }
+
+    printf("\n%p\n", snake.lastLast->next);
+    printf("%p\n", snake.firstLast);
+    updateBoard(&snake);
+    // }
 }
