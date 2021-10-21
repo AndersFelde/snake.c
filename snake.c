@@ -8,17 +8,20 @@
 
 char board[yLength][xLength];
 
-typedef struct Coordinate {
+typedef struct Coordinate
+{
     int x;
     int y;
 } Coordinate;
 
-typedef struct Last {
+typedef struct Last
+{
     Coordinate cord;
     struct Last *next;
 } Last;
 
-typedef struct Snake {
+typedef struct Snake
+{
     Coordinate head;
     Coordinate direction;
     Last *lastLast;
@@ -27,54 +30,75 @@ typedef struct Snake {
     int length;
 } Snake;
 
-int kbhit() {
+int kbhit()
+{
     int ch = getch();
 
-    if (ch != ERR) {
+    if (ch != ERR)
+    {
         ungetch(ch);
         return 1;
-    } else {
+    }
+    else
+    {
         return 0;
     }
 }
 
-void createBoard() {
-    for (int y = 0; y < yLength; y++) {
-        for (int x = 0; x < xLength; x++) {
-            if (y == 0 || y == yLength - 1) {
+void createBoard()
+{
+    for (int y = 0; y < yLength; y++)
+    {
+        for (int x = 0; x < xLength; x++)
+        {
+            if (y == 0 || y == yLength - 1)
+            {
                 board[y][x] = '!';
-            } else if (x == 0 || x == xLength - 1) {
+            }
+            else if (x == 0 || x == xLength - 1)
+            {
                 board[y][x] = '!';
-            } else {
+            }
+            else
+            {
                 board[y][x] = ' ';
             }
         }
     }
 }
 
-int snakeMove(Snake *snake) {
+int snakeMove(Snake *snake)
+{
+    if (board[snake->head.y + snake->direction.y][snake->head.x + snake->direction.x] == '!')
+    {
+        return 0;
+    }
     // BUG: WHAT?????? printf("moving\n");
 
     /* printf("%p\n", snake->lastLast->next);
     printf("%p\n", snake->firstLast); */
-    printf("FirstLast: %p\n", snake->firstLast);
-    printf("FirstLast:%d,%d\n", snake->firstLast->cord.x,
-           snake->firstLast->cord.y);
-    printf("lastLast:%d,%d\n", snake->lastLast->cord.x,
-           snake->lastLast->cord.y);
-    printf("lastLast: %p\n", snake->lastLast);
+    // printf("FirstLast: %p\n", snake->firstLast);
+    // printf("FirstLast:%d,%d\n", snake->firstLast->cord.x,
+    //        snake->firstLast->cord.y);
+    // printf("lastLast:%d,%d\n", snake->lastLast->cord.x,
+    //        snake->lastLast->cord.y);
+    // printf("lastLast: %p\n", snake->lastLast);
 
-    Last firstLast;
-    firstLast.cord.x = snake->head.x;
-    firstLast.cord.y = snake->head.y;
+    //BUG: Blir ikke til ny variabel andre gangen
+    Last *firstLast = (Last *)calloc(1, sizeof(Last));
+    firstLast->cord.x = snake->head.x;
+    firstLast->cord.y = snake->head.y;
 
-    snake->firstLast->next = &firstLast;
+    snake->firstLast->next = firstLast;
     // printf("1:%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
-    snake->firstLast = &firstLast;
+    snake->firstLast = firstLast;
     // printf("1:%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
 
+    board[snake->lastLast->cord.y][snake->lastLast->cord.x] =
+        ' '; // fjerner siste enden
     // printf("1:%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
     Last *nextLastLast = snake->lastLast->next;
+    free(snake->lastLast);
     snake->lastLast = nextLastLast;
     // snake->lastLast = snake->lastLast->next;
     // printf("2:%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
@@ -82,38 +106,37 @@ int snakeMove(Snake *snake) {
     snake->head.y += snake->direction.y;
     snake->head.x += snake->direction.x;
 
-    board[snake->head.y][snake->head.x] = 'X';  // flytter hodet
-    board[snake->lastLast->cord.y][snake->lastLast->cord.x] =
-        ' ';  // fjerner siste enden
-
-    if (board[snake->head.y][snake->head.x] == '!') {
-        return 0;
-    }
+    board[snake->head.y][snake->head.x] = 'X'; // flytter hodet
 
     /* printf("%p\n", snake->lastLast->next);
     printf("%p\n", snake->firstLast); */
-    printf("%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
-    printf("%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
-    printf("%d,%d\n", snake->head.x, snake->head.y);
+    // printf("%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
+    // printf("%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
+    // printf("%d,%d\n", snake->head.x, snake->head.y);
     return 1;
 }
 
-void updateBoard(Snake *snake) {
-    // clear();
-    /* printw("%d, %d\n", snake->head.y, snake->head.x);
-    printw("%d, %d\n", snake->lastLast->cord.y, snake->lastLast->cord.x);
+void updateBoard(Snake *snake)
+{
+    clear();
+    printw("%d, %d\n", snake->head.y, snake->head.x);
     printw("%d, %d\n", snake->firstLast->cord.y, snake->firstLast->cord.x);
-    printw("%d, %d\n", snake->direction.y, snake->direction.x); */
-    for (int y = 0; y < yLength; y++) {
-        for (int x = 0; x < xLength; x++) {
-            printf("%c", board[y][x]);
+    printw("%d, %d\n", snake->lastLast->cord.y, snake->lastLast->cord.x);
+    printw("%d, %d\n", snake->direction.y, snake->direction.x);
+    printw("%c\n", board[snake->head.y][snake->head.x]);
+    for (int y = 0; y < yLength; y++)
+    {
+        for (int x = 0; x < xLength; x++)
+        {
+            printw("%c", board[y][x]);
         }
-        printf("\n");
+        printw("\n");
     }
-    // usleep(1000000);
+    usleep(500000);
 }
 
-Snake initSnake() {
+Snake initSnake()
+{
     Snake snake;
 
     snake.direction.x = 1;
@@ -124,63 +147,70 @@ Snake initSnake() {
 
     snake.length = 3;
 
-    Last lastLast;
-    Last firstLast;
+    Last *lastLast = (Last *)calloc(1, sizeof(Last));
+    Last *firstLast = (Last *)calloc(1, sizeof(Last));
 
-    lastLast.cord.x = snake.head.x - 2;
-    lastLast.cord.y = snake.head.y;
-    lastLast.next = &firstLast;
+    lastLast->cord.x = snake.head.x - 2;
+    lastLast->cord.y = snake.head.y;
+    lastLast->next = firstLast;
 
-    firstLast.cord.x = snake.head.x - 1;
-    firstLast.cord.y = snake.head.y;
+    firstLast->cord.x = snake.head.x - 1;
+    firstLast->cord.y = snake.head.y;
 
-    snake.lastLast = &lastLast;
-    snake.firstLast = &firstLast;
+    snake.lastLast = lastLast;
+    snake.firstLast = firstLast;
 
-    board[snake.head.y][snake.head.x] = 'X';  // flytter hodet
+    board[snake.head.y][snake.head.x] = 'X'; // flytter hodet
     board[snake.firstLast->cord.y][snake.firstLast->cord.x] = 'X';
     board[snake.lastLast->cord.y][snake.lastLast->cord.x] = 'X';
 
     return snake;
 }
 
-void checkKey(Snake *snake) {
+void checkKey(Snake *snake)
+{
     /* Key pressed! It was: 119 W
     Key pressed! It was: 97 A
     Key pressed! It was: 115 S
     Key pressed! It was: 100 D*/
-    switch (getch()) {
-        // alt må være invers
-        case 119:
-            if (snake->direction.y != 1) {
-                snake->direction.y = -1;
-                snake->direction.x = 0;
-            }
-            break;
-        case 115:
-            if (snake->direction.y != -1) {
-                snake->direction.y = 1;
-                snake->direction.x = 0;
-            }
-            break;
-        case 97:
-            if (snake->direction.x != 1) {
-                snake->direction.x = -1;
-                snake->direction.y = 0;
-            }
-            break;
-        case 100:
-            if (snake->direction.x != -1) {
-                snake->direction.x = 1;
-                snake->direction.y = 0;
-            }
-            break;
-        default:
-            break;
+    switch (getch())
+    {
+    // alt må være invers
+    case 119:
+        if (snake->direction.y != 1)
+        {
+            snake->direction.y = -1;
+            snake->direction.x = 0;
+        }
+        break;
+    case 115:
+        if (snake->direction.y != -1)
+        {
+            snake->direction.y = 1;
+            snake->direction.x = 0;
+        }
+        break;
+    case 97:
+        if (snake->direction.x != 1)
+        {
+            snake->direction.x = -1;
+            snake->direction.y = 0;
+        }
+        break;
+    case 100:
+        if (snake->direction.x != -1)
+        {
+            snake->direction.x = 1;
+            snake->direction.y = 0;
+        }
+        break;
+    default:
+        break;
     }
 }
 
-void initCurses() {
+void initCurses()
+{
     initscr();
     cbreak();
     noecho();
@@ -188,30 +218,31 @@ void initCurses() {
     scrollok(stdscr, TRUE);
 }
 
-int main() {
+int main()
+{
     Snake snake = initSnake();
 
     createBoard();
-    // initCurses();
+    initCurses();
 
     // ncurses
 
-    // while (1) {
-    /* if (kbhit()) {
-        checkKey(&snake);
-    }
-
-    refresh(); */
-
-    for (int i = 0; i < 4; i++) {
-        printf("%p\n", snake.lastLast->next);
-        printf("%p\n", snake.firstLast);
-        if (!snakeMove(&snake)) {
-            // break;
+    while (1)
+    {
+        if (kbhit())
+        {
+            checkKey(&snake);
         }
 
-        // updateBoard(&snake);
-    }
+        refresh();
 
-    // }
+        // printf("%p\n", snake.lastLast->next);
+        // printf("%p\n", snake.firstLast);
+        if (!snakeMove(&snake))
+        {
+            break;
+        }
+
+        updateBoard(&snake);
+    }
 }
