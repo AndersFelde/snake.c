@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 typedef struct Coordinate
 {
@@ -31,6 +32,7 @@ typedef struct Snake
 char board[yLength][xLength];
 Coordinate apple;
 
+int ab = 0;
 int kbhit()
 {
     int ch = getch();
@@ -71,9 +73,16 @@ void createBoard()
 void generateApple()
 {
     //rand() % (max_number + 1 - minimum_number) + minimum_number
-    apple.x = rand() % (xLength - 1) + 1;
-    apple.y = rand() % (yLength - 1) + 1;
-    board[apple.y][apple.y] = '*';
+    //BUG: kan spawne inne i slangen!!
+    do
+    {
+        srand(time(NULL));
+        apple.x = rand() % (xLength - 1 - 1) + 1;
+        apple.y = rand() % (yLength - 1 - 1) + 1;
+        ab += 1;
+    } while (board[apple.y][apple.x] == 'X');
+
+    board[apple.y][apple.x] = '*';
 }
 
 int snakeMove(Snake *snake)
@@ -142,20 +151,37 @@ int snakeMove(Snake *snake)
 void updateBoard(Snake *snake)
 {
     clear();
-    printw("%d, %d\n", snake->head.y, snake->head.x);
-    printw("%d, %d\n", snake->firstLast->cord.y, snake->firstLast->cord.x);
-    printw("%d, %d\n", snake->lastLast->cord.y, snake->lastLast->cord.x);
-    printw("%d, %d\n", snake->direction.y, snake->direction.x);
-    printw("%c\n", board[snake->head.y][snake->head.x]);
+    printw("%d, %d\n", apple.y, apple.x);
+    printw("%d\n", ab);
+
+    // printw("%d, %d\n", snake->head.y, snake->head.x);
+    // printw("%d, %d\n", snake->firstLast->cord.y, snake->firstLast->cord.x);
+    // printw("%d, %d\n", snake->lastLast->cord.y, snake->lastLast->cord.x);
+    // printw("%d, %d\n", snake->direction.y, snake->direction.x);
+    // printw("%c\n", board[snake->head.y][snake->head.x]);
     for (int y = 0; y < yLength; y++)
     {
         for (int x = 0; x < xLength; x++)
         {
-            printw("%c", board[y][x]);
+            if (snake->head.y == y && snake->head.x == x)
+            {
+                printw("+");
+            }
+            else
+            {
+                printw("%c", board[y][x]);
+            }
         }
         printw("\n");
     }
-    usleep(500000);
+    if (snake->direction.y == 0)
+    {
+        usleep(100000);
+    }
+    else
+    {
+        usleep(150000);
+    }
 }
 
 Snake initSnake()
