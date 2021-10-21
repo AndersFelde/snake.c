@@ -1,5 +1,0 @@
-break snake.c:84
-break snake.c:236
-break snake.c:86
-
-set exec-wrapper The wrapper for running programs is \
