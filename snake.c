@@ -32,6 +32,8 @@ int score;
 
 int kbhit() {
     int ch = getch();
+    // INFO: vurderer å ha flush input?, men vanskelig å svinke kjapt
+    // flushinp();
 
     if (ch != ERR) {
         ungetch(ch);
@@ -51,9 +53,7 @@ void createBoard() {
             } else {
                 board[y][x] = ' ';
             }
-            // printw("%c", board[y][x]);
         }
-        // printw("\n");
     }
 }
 
@@ -81,27 +81,12 @@ int snakeMove(Snake *snake) {
     }
     // BUG: WHAT?????? printf("moving\n");
 
-    /* printf("%p\n", snake->lastLast->next);
-    printf("%p\n", snake->firstLast); */
-    // printf("FirstLast: %p\n", snake->firstLast);
-    // printf("FirstLast:%d,%d\n", snake->firstLast->cord.x,
-    //        snake->firstLast->cord.y);
-    // printf("lastLast:%d,%d\n", snake->lastLast->cord.x,
-    //        snake->lastLast->cord.y);
-    // printf("lastLast: %p\n", snake->lastLast);
-
-    // BUG: Blir ikke til ny variabel andre gangen
     Last *firstLast = (Last *)calloc(1, sizeof(Last));
     firstLast->cord.x = snake->head.x;
     firstLast->cord.y = snake->head.y;
 
     snake->firstLast->next = firstLast;
-    // printf("1:%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
     snake->firstLast = firstLast;
-    // printf("1:%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
-
-    // snake->lastLast = snake->lastLast->next;
-    // printf("2:%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
 
     snake->head.y += snake->direction.y;
     snake->head.x += snake->direction.x;
@@ -111,66 +96,45 @@ int snakeMove(Snake *snake) {
     if (!eatApple) {
         board[snake->lastLast->cord.y][snake->lastLast->cord.x] =
             ' ';  // fjerner siste enden
-        // printf("1:%d,%d\n", snake->lastLast->cord.x,
-        // snake->lastLast->cord.y);
         Last *nextLastLast = snake->lastLast->next;
         free(snake->lastLast);
         snake->lastLast = nextLastLast;
     } else {
         generateApple();
     }
-    // flytter hodet
-
-    /* printf("%p\n", snake->lastLast->next);
-    printf("%p\n", snake->firstLast); */
-    // printf("%d,%d\n", snake->lastLast->cord.x, snake->lastLast->cord.y);
-    // printf("%d,%d\n", snake->firstLast->cord.x, snake->firstLast->cord.y);
-    // printf("%d,%d\n", snake->head.x, snake->head.y);
     return 1;
 }
 
-void updateBoard(Snake *snake, WINDOW **snakeWin) {
-    wclear(*snakeWin);
-    /* printw("%d, %d\n", apple.y, apple.x);
-    printw("Score: %d\n", score); */
-
-    /* for (int y = 0; y < yLength - 2; y++) {
-        for (int x = 0; x < xLength - 2; x++) {
-            mvwaddch(snakeWin, y, x, 'A');
-        }
-    } */
-
-    // printw("%d, %d\n", snake->head.y, snake->head.x);
-    // printw("%d, %d\n", snake->firstLast->cord.y, snake->firstLast->cord.x);
-    // printw("%d, %d\n", snake->lastLast->cord.y, snake->lastLast->cord.x);
-    // printw("%d, %d\n", snake->direction.y, snake->direction.x);
-    // printw("%c\n", board[snake->head.y][snake->head.x]);
+void updateBoard(Snake *snake, WINDOW **snakeWin, WINDOW **scoreWin) {
+    // wclear(*snakeWin);
     for (int y = 0; y < yLength - 2; y++) {
         for (int x = 0; x < xLength - 2; x++) {
             char tile = board[y + 1][x + 1];
             // BUG: farger funker ikke
-            if (tile == 'X') {
-                attron(COLOR_PAIR(1));
-            } else if (tile == '*') {
-                attron(COLOR_PAIR(2));
-            }
             if (snake->head.y - 1 == y && snake->head.x - 1 == x) {
-                mvwaddch(*snakeWin, y, x, '+');
+                mvwaddch(*snakeWin, y, x, '+' | COLOR_PAIR(1));
             } else {
-                mvwaddch(*snakeWin, y, x, board[y + 1][x + 1]);
-                // mvwaddch(*snakeWin, y, x, 'O');
-                // printw("%c", board[y + 1][x + 1]);
+                int color;
+                if (tile == '*') {
+                    color = COLOR_PAIR(2);
+                } else {
+                    color = COLOR_PAIR(1);
+                }
+                mvwaddch(*snakeWin, y, x, board[y + 1][x + 1] | color);
             }
         }
-        // printw("\n");
     }
+    mvwprintw(*scoreWin, 0, 0, "Score: %d", score);
     wrefresh(*snakeWin);
+    wrefresh(*scoreWin);
+
+    // INFO: jo flere epler jo raskere fart
+    int speedFactor = (score + 1) * 0.25;
     if (snake->direction.y == 0) {
         usleep(100000);
     } else {
         usleep(150000);
     }
-    // usleep(300000);
 }
 
 Snake initSnake() {
@@ -247,7 +211,6 @@ void initCurses() {
     nodelay(stdscr, TRUE);
     scrollok(stdscr, TRUE);
     start_color();
-    // BUG: farger funker ikke
     init_pair(1, COLOR_GREEN, COLOR_BLACK);
     init_pair(2, COLOR_RED, COLOR_BLACK);
     refresh();
@@ -268,21 +231,20 @@ int main() {
     // ncurses
 
     WINDOW *snakeWin = newwin(yLength - 2, xLength - 2, 1, 1);
-    // refresh();
-    // box(win_self, 0, 0);
+    WINDOW *scoreWin = newwin(1, 20, yLength, 0);
 
     while (1) {
         if (kbhit()) {
             checkKey(&snake);
         }
 
-        // printf("%p\n", snake.lastLast->next);
-        // printf("%p\n", snake.firstLast);
         if (!snakeMove(&snake)) {
             break;
         }
 
-        updateBoard(&snake, &snakeWin);
+        updateBoard(&snake, &snakeWin, &scoreWin);
         wrefresh(borderWin);
     }
+    clear();
+    printf("Du tapte, LOOOOL\nScore: %d", score);
 }
