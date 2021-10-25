@@ -28,7 +28,7 @@ typedef struct Snake {
 
 char board[yLength][xLength];
 Coordinate apple;
-int score;
+int score = 0;
 
 int kbhit() {
     int ch = getch();
