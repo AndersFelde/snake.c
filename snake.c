@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -25,6 +26,13 @@ typedef struct Snake {
 
 #define yLength 20
 #define xLength 30
+#define usernameLength 20
+#define highScoreLength 10
+
+typedef struct Highscore {
+    char username[usernameLength];
+    char highScore[highScoreLength];
+} Highscore;
 
 char board[yLength][xLength];
 Coordinate apple;
@@ -173,27 +181,53 @@ void checkKey(Snake *snake) {
     Key pressed! It was: 97 A
     Key pressed! It was: 115 S
     Key pressed! It was: 100 D*/
-    switch (getch()) {
+    /* Opp:
+    Keycode: 27
+    Keycode: 91
+    Keycode: 65
+    Høyre:
+    Keycode: 27
+    Keycode: 91
+    Keycode: 67
+    Ned:
+    Keycode: 27
+    Keycode: 91
+    Keycode: 66
+    Venstre:
+    Keycode: 27
+    Keycode: 91
+    Keycode: 68 */
+    int key = getch();
+    if (key == 27) {  // fordi piltaster er rart
+        getch();
+        key = getch();
+    }
+
+    switch (key) {
         // alt må være invers
         case 119:
+        case 65:
             if (snake->direction.y != 1) {
                 snake->direction.y = -1;
                 snake->direction.x = 0;
             }
             break;
         case 115:
+        case 66:
             if (snake->direction.y != -1) {
                 snake->direction.y = 1;
                 snake->direction.x = 0;
             }
             break;
         case 97:
+        case 68:
             if (snake->direction.x != 1) {
                 snake->direction.x = -1;
                 snake->direction.y = 0;
             }
             break;
         case 100:
+        case 67:
             if (snake->direction.x != -1) {
                 snake->direction.x = 1;
                 snake->direction.y = 0;
@@ -213,11 +247,83 @@ void initCurses() {
     start_color();
     init_pair(1, COLOR_GREEN, COLOR_BLACK);
     init_pair(2, COLOR_RED, COLOR_BLACK);
+    flushinp();
     refresh();
+}
+
+void writeHighScore(Highscore *user) {
+    char lengthString[highScoreLength];
+    int length;
+    int i = 0;
+    FILE *file = fopen("highscore.txt", "r");
+    char *tempUsername;
+    char *tempScore;
+    char temp[usernameLength + highScoreLength + 1];
+    int isHigher = 0;
+    sprintf(user->highScore, "%d", score);
+
+    printf("--------HIGHSCORE--------\n");
+    if (!file) {  // sjekker om filen finnes
+        file = fopen("highscore.txt", "w+");
+        fprintf(file, "1\n");
+        fprintf(file, "%s:%s\n", user->username, user->highScore);
+        printf("%s:%s <--\n", user->username, user->highScore);
+        fclose(file);
+        return;
+    }
+
+    fgets(lengthString, highScoreLength, file);
+    length = atoi(lengthString) + 1;  // fordi skal ha en ny score også
+
+    char highScores[length][highScoreLength + usernameLength +
+                            1];  // maks lengde på highscore, 10 tall
+
+    while (fgets(highScores[i], highScoreLength + usernameLength + 1,
+                 file) &&
+           i < length) {  // leser input og putter det i highScores array, den
+                          // er ferdig sortert
+        strcpy(temp, highScores[i]);
+        tempUsername = strtok(temp, ":");
+        tempScore = strtok(NULL, ":");
+        tempScore[strcspn(tempScore, "\n")] = 0;  // for å fjerne newline
+
+        if (score >= atoi(tempScore) && !isHigher) {
+            isHigher = 1;
+            sprintf(highScores[i], "%s:%s\n", user->username, user->highScore);
+            printf("%s:%s <--\n", user->username, user->highScore);
+
+            i++;
+            sprintf(highScores[i], "%s:%s\n", tempUsername, tempScore);
+        }
+        printf("%s", highScores[i]);
+        i++;
+    }
+
+    if (!isHigher) {
+        sprintf(highScores[i], "%s:%s\n", user->username, user->highScore);
+        printf("%s:%s <--\n", user->username, user->highScore);
+    }
+
+    fclose(file);
+    file = fopen("highscore.txt", "w+");
+
+    fprintf(file, "%d\n", length);
+
+    for (int x = 0; x < length; x++) {
+        fprintf(file, "%s", highScores[x]);
+    }
+
+    fclose(file);
+    return;
 }
 
 int main() {
     Snake snake = initSnake();
+    Highscore *user = calloc(1, sizeof(Highscore));
+
+    printf("Ditt navn: ");
+    fgets(user->username, usernameLength, stdin);
+    user->username[strcspn(user->username, "\n")] = 0;  // for å fjerne newline
 
     initCurses();
 
@@ -245,6 +351,9 @@ int main() {
         updateBoard(&snake, &snakeWin, &scoreWin);
         wrefresh(borderWin);
     }
+    endwin();
     clear();
-    printf("Du tapte, LOOOOL\nScore: %d", score);
+    writeHighScore(user);
+    // system("stty sane");
+    // printf("Du tapte, LOOOOL\nScore: %d", score);
 }

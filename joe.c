@@ -1,25 +1,35 @@
 #include <stdio.h>
 
+void readFile() {
+    FILE *f;
+    int bufferSize = 100;
+    char buffer[bufferSize];
+    f = fopen("HEI.txt", "r");
+
+    while (fgets(buffer, bufferSize, f)) {
+        printf("%s", buffer);
+    }
+    fclose(f);
+    return;
+}
+
+void lesFil() {
+    FILE *fp;
+    char string[60];
+    fp = fopen("HEI.txt", "r");
+    fgets(string, 60, fp);
+    printf("%s", string);
+    fclose(fp);
+    return;
+}
+
 int main() {
-    int input;
-    scanf("%d", &input);
+    FILE *f;
+    f = fopen("HEI.txt", "w+");
 
-    int output[input][input];
-
-    int counter = 1;
-    for (int y = 0; y < input; y++) {
-        for (int x = 0; x < input; x++) {
-            output[y][x] = counter;
-            counter++;
-        }
-    }
-
-    for (int y = 0; y < input; y++) {
-        for (int x = 0; x < input; x++) {
-            printf("%02d ", output[y][x]);
-        }
-        printf("\n");
-    }
-
+    fprintf(f, "Hei Verden 2020.\nVelkommen til min kode.");
+    fclose(f);
+    // readFile();
+    lesFil();
     return 0;
 }
