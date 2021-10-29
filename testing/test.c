@@ -5,8 +5,6 @@
 
 int kbhit() {
     int ch = getch();
-    // INFO: vurderer å ha flush input?, men vanskelig å svinke kjapt
-    // flushinp();
 
     if (ch != ERR) {
         ungetch(ch);
